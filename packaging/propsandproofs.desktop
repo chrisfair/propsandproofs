@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Props & Proofs
+GenericName=Modern & Modal Logic Game
+Comment=Play and learn Polish notation, Fitch natural deduction, and Modal Logic (K, T, S4, S5)
+Exec=propsandproofs
+Icon=propsandproofs
+Terminal=false
+Categories=Game;LogicGame;Education;
+Keywords=logic;modal;kripke;fitch;polish;proof;godot;

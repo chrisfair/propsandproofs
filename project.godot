@@ -1,0 +1,25 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+
+config_version=5
+
+[application]
+
+config/name="Props & Proofs — Modern & Modal Logic"
+config/description="Play and learn Polish notation, Fitch natural deduction, and Modal Logic (K, T, S4, S5)"
+run/main_scene="res://scenes/MainGame.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1680
+window/size/viewport_height=960
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+
+anti_aliasing/quality/msaa_2d=2

@@ -1,0 +1,4 @@
+import gdext
+import classes/props_and_proofs_controller
+
+GDExtensionEntryPoint

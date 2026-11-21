@@ -1,0 +1,8 @@
+.godot/
+.nimble/
+build/
+nim/lib/
+*.so
+*.dll
+*.dylib
+*.import

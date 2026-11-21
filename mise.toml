@@ -1,0 +1,46 @@
+[tools]
+"asdf:asdf-community/asdf-nim" = "2.2.2"
+
+[env]
+PROJECT_NAME = "PropsAndProofs"
+GODOT_BIN = "/usr/bin/godot"
+NIMBLE_DIR = "{{config_root}}/.nimble"
+NIMCACHE_TEST_DIR = "{{config_root}}/build/nimcache_test"
+COVERAGE_DIR = "{{config_root}}/build/coverage"
+COVERAGE_MIN_PCT = "85.0"
+_.path = ["{{config_root}}/.nimble/bin"]
+
+[tasks.deps]
+description = "Install Nimble dependencies (gdext) into project-local .nimble"
+run = "make deps"
+
+[tasks.build]
+description = "Compile Nim GDExtension shared libraries for Godot 4"
+run = "make build"
+
+[tasks.test]
+description = "Run headless Nim unit & logic/modal/AI test suite"
+run = "make test"
+
+[tasks.coverage]
+description = "Run unit tests with GCC gcov instrumentation and enforce >= 85% coverage"
+run = "make coverage"
+
+[tasks.clean]
+description = "Remove unit test binaries, nimcache, and coverage output"
+run = "make clean"
+
+[tasks.smoke]
+description = "Verify Godot 4 loads the Nim GDExtension and renders Props & Proofs"
+depends = ["build"]
+run = "$GODOT_BIN --headless --path . --quit-after 10"
+
+[tasks.run]
+description = "Build Nim GDExtension and launch Props & Proofs"
+depends = ["build"]
+run = "$GODOT_BIN --path ."
+
+[tasks.editor]
+description = "Build Nim GDExtension and open the Godot 4 editor"
+depends = ["build"]
+run = "$GODOT_BIN --editor --path ."

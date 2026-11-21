@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="22" fill="#16211c"/>
+  <rect x="14" y="14" width="44" height="44" rx="8" fill="#c0392b" stroke="#f5d799" stroke-width="3"/>
+  <text x="36" y="45" font-family="serif" font-size="28" font-weight="bold" fill="#fdf6e3" text-anchor="middle">C</text>
+  <rect x="70" y="14" width="44" height="44" rx="8" fill="#2c5aa0" stroke="#a8d1ff" stroke-width="3"/>
+  <text x="92" y="45" font-family="serif" font-size="28" font-weight="bold" fill="#eef6ff" text-anchor="middle">□</text>
+  <rect x="14" y="70" width="44" height="44" rx="8" fill="#2e7d52" stroke="#b8f0cf" stroke-width="3"/>
+  <text x="36" y="101" font-family="serif" font-size="28" font-weight="bold" fill="#f3fff7" text-anchor="middle">p</text>
+  <rect x="70" y="70" width="44" height="44" rx="8" fill="#6b3fa0" stroke="#dcc2ff" stroke-width="3"/>
+  <text x="92" y="101" font-family="serif" font-size="28" font-weight="bold" fill="#f7f0ff" text-anchor="middle">◇</text>
+</svg>
