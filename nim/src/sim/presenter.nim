@@ -104,25 +104,27 @@ proc rebuildLayout*(p: WffPresenter) =
   case p.game.mode
   of gmAcademy:
     # Lesson selector strip at top of left panel
-    let btnW = (lp.w - 36.0 - 11.0 * 6.0) / 12.0
-    for i in 0 ..< Lessons.len:
-      let bx = lp.x + 18.0 + float(i) * (btnW + 6.0)
+    let nLessons = Lessons.len
+    let lGap = 4.0
+    let btnW = (lp.w - 36.0 - float(nLessons - 1) * lGap) / float(nLessons)
+    for i in 0 ..< nLessons:
+      let bx = lp.x + 18.0 + float(i) * (btnW + lGap)
       let st =
         if i == p.game.lessonIdx: bsAccent
         elif p.game.lessonsCompleted[i]: bsPrimary
         else: bsInactiveTab
       let mark = if p.game.lessonsCompleted[i]: fmt"{i+1}✓" else: fmt"{i+1}"
-      p.addBtn("lesson:" & $i, mark, uiRect(bx, lp.y + 44.0, btnW, 32.0), st)
+      p.addBtn("lesson:" & $i, mark, uiRect(bx, lp.y + 42.0, btnW, 30.0), st)
 
-    # Palette cubes for current lesson
+    # Palette cubes for current lesson (single row up to 11 cubes)
     let lesson = Lessons[p.game.lessonIdx]
-    let cubeSize = 58.0
-    let gap = 10.0
+    let cubeSize = 54.0
+    let gap = 9.0
     for i, sym in lesson.palette:
-      let col = i mod 10
-      let row = i div 10
+      let col = i mod 11
+      let row = i div 11
       let cx = lp.x + 22.0 + float(col) * (cubeSize + gap)
-      let cy = lp.y + 304.0 + float(row) * (cubeSize + gap)
+      let cy = lp.y + 388.0 + float(row) * (cubeSize + gap)
       p.cubeHits.add(CubeHit(
         cubeId: 1000 + i,
         sym: sym,
@@ -132,13 +134,14 @@ proc rebuildLayout*(p: WffPresenter) =
       ))
 
     # Action buttons
-    let ay = lp.y + lp.h - 58.0
-    p.addBtn("acad:back", "Backspace", uiRect(lp.x + 18.0, ay, 118.0, 38.0), bsSecondary)
-    p.addBtn("acad:clear", "Clear", uiRect(lp.x + 146.0, ay, 92.0, 38.0), bsDanger)
-    p.addBtn("acad:hint", "Toggle Hint", uiRect(lp.x + 248.0, ay, 122.0, 38.0), bsSecondary)
-    p.addBtn("acad:example", "Load Example", uiRect(lp.x + 380.0, ay, 134.0, 38.0), bsSecondary)
+    let ay = lp.y + lp.h - 54.0
+    p.addBtn("acad:back", "Backspace", uiRect(lp.x + 18.0, ay, 102.0, 36.0), bsSecondary)
+    p.addBtn("acad:clear", "Clear", uiRect(lp.x + 128.0, ay, 76.0, 36.0), bsDanger)
+    p.addBtn("acad:hint", "Toggle Hint", uiRect(lp.x + 212.0, ay, 108.0, 36.0), bsSecondary)
+    p.addBtn("acad:step", "Nudge +1", uiRect(lp.x + 328.0, ay, 98.0, 36.0), bsAccent)
+    p.addBtn("acad:example", "Load Example", uiRect(lp.x + 434.0, ay, 118.0, 36.0), bsSecondary)
     let hasNext = p.game.lessonIdx < Lessons.high
-    p.addBtn("acad:next", "Next Lesson →", uiRect(lp.x + lp.w - 164.0, ay, 146.0, 38.0), bsPrimary, enabled = hasNext)
+    p.addBtn("acad:next", "Next Lesson →", uiRect(lp.x + lp.w - 158.0, ay, 140.0, 36.0), bsPrimary, enabled = hasNext)
 
   of gmWffGame:
     # Rolled pool cubes
@@ -301,6 +304,8 @@ proc handleButton*(p: WffPresenter; id: string) =
     p.game.academyClear()
   elif id == "acad:hint":
     p.game.showHint = not p.game.showHint
+  elif id == "acad:step":
+    p.game.academyNextStep()
   elif id == "acad:example":
     let ex = Lessons[p.game.lessonIdx].examplePolish
     p.game.academyClear()

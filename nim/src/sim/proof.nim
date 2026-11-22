@@ -41,6 +41,28 @@ type
     steps*: seq[ProofStep]
     summary*: string
 
+proc ruleHelp*(r: ProofRule): string =
+  case r
+  of prPremise: "Premise: Given starting assumption at depth 0."
+  of prAssump: "Assump: Opens a new Fitch subproof (depth +1) with a temporary hypothesis."
+  of prR: "R (Reit): Copy an earlier accessible line Ref1 into the current scope."
+  of prCi: "Ci (→ Intro): Close subproof from Ref1 (assumption φ) to Ref2 (ψ) to derive Cφψ."
+  of prCo: "Co (Modus Ponens): From Ref1 = Cφψ and Ref2 = φ, derive ψ."
+  of prKi: "Ki (∧ Intro): Combine Ref1 = φ and Ref2 = ψ into Kφψ."
+  of prKo: "Ko (∧ Elim): Extract either φ or ψ from Ref1 = Kφψ."
+  of prAi: "Ai (∨ Intro): From Ref1 = φ, derive Aφψ or Aψφ."
+  of prAo: "Ao (∨ Elim): From Aφψ (Ref1), Cφχ (Ref2), and Cψχ (last line), derive χ."
+  of prNi: "Ni (¬ Intro): Subproof starting at Ref1 (φ) yielding ψ (Ref2) and Nψ derives Nφ."
+  of prNo: "No (¬¬ Elim): From Ref1 = NNφ, derive φ."
+  of prEi: "Ei (↔ Intro): From Ref1 = Cφψ and Ref2 = Cψφ, derive Eφψ."
+  of prEo: "Eo (↔ Elim): Extract Cφψ or Cψφ from Ref1 = Eφψ."
+  of prNec: "Nec (□ Intro, K+): From a pure theorem φ at Ref1 (no premises), derive Lφ."
+  of prKDist: "K-Dist (K+): From Ref1 = LCφψ (□(φ→ψ)) and Ref2 = Lφ (□φ), derive Lψ (□ψ)."
+  of prTElim: "T-Elim (T+): From Ref1 = Lφ (□φ), derive φ (requires reflexive frames)."
+  of prFourIntro: "4-Intro (S4+): From Ref1 = Lφ (□φ), derive LLφ (□□φ) (transitive frames)."
+  of prFiveIntro: "5-Intro (S5): From Ref1 = Mφ (◇φ), derive LMφ (□◇φ) (equivalence frames)."
+  of prDual: "Dual (K+): Convert between NLφ ↔ MNφ or NMφ ↔ LNφ at Ref1."
+
 proc isAccessible(steps: seq[ProofStep]; curIdx: int; targetLine: int): bool =
   if targetLine < 1 or targetLine > curIdx:
     return false

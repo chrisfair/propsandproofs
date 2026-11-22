@@ -252,8 +252,40 @@ proc drawFormulaInspector(
 
   let parsed = parseWff(syms)
   if not parsed.isWff:
-    self.drawText(font, rc.x + 14.0, rc.y + 58.0, "Status: Not yet a complete WFF", 14, color(0.96, 0.62, 0.44, 1.0))
-    discard self.drawWrappedText(font, rc.x + 14.0, rc.y + 84.0, rc.w - 28.0, parsed.errorMsg, 13, color(0.86, 0.84, 0.78, 0.95))
+    let tr = polishSlotTrace(syms)
+    self.drawText(font, rc.x + 14.0, rc.y + 54.0, "Status: Building Formula (Not Yet Complete)", 14, color(0.96, 0.72, 0.44, 1.0))
+    var curY = self.drawWrappedText(font, rc.x + 14.0, rc.y + 78.0, rc.w - 28.0, parsed.errorMsg, 13, color(0.88, 0.86, 0.80, 0.96))
+
+    # Live Polish Slot Tracker card
+    curY += 8.0
+    let slotRc = uiRect(rc.x + 14.0, curY, rc.w - 28.0, 96.0)
+    self.drawCard(slotRc, color(0.08, 0.13, 0.16, 0.96), color(0.46, 0.72, 0.88, 0.82), 1.4)
+    self.drawText(font, slotRc.x + 12.0, slotRc.y + 20.0, "LIVE POLISH SLOT TRACKER (Start at 1; Binary +1, Unary +0, Atom -1)", 11, color(0.68, 0.88, 0.98, 1.0))
+    discard self.drawWrappedText(font, slotRc.x + 12.0, slotRc.y + 42.0, slotRc.w - 24.0, tr.summary, 13, color(0.96, 0.94, 0.86, 1.0), 17.0)
+    discard self.drawWrappedText(font, slotRc.x + 12.0, slotRc.y + 78.0, slotRc.w - 24.0, "Trace: " & tr.trace, 11, color(0.70, 0.86, 0.78, 0.92), 15.0)
+    curY = slotRc.y + slotRc.h + 14.0
+
+    # Symbol & Connective Quick Reference (always visible while building if space permits)
+    if curY + 210.0 <= rc.y + rc.h:
+      let refRc = uiRect(rc.x + 14.0, curY, rc.w - 28.0, min(236.0, rc.y + rc.h - curY - 12.0))
+      self.drawCard(refRc, color(0.09, 0.12, 0.11, 0.94), color(0.48, 0.58, 0.50, 0.72), 1.2)
+      self.drawText(font, refRc.x + 12.0, refRc.y + 22.0, "SYMBOL QUICK REFERENCE (POLISH PREFIX NOTATION)", 12, color(0.94, 0.84, 0.56, 1.0))
+      let refLines = [
+        "Atoms (fills 1 slot):     p, q, r, s   — basic true/false claims",
+        "Unary (+0 slots, 1 WFF):  N (¬ not)    — e.g. Np = ¬p",
+        "Binary (+1 slot, 2 WFFs): C (→ if-then) — Cpq = (p → q)",
+        "                          K (∧ and)     — Kpq = (p ∧ q)",
+        "                          A (∨ or)      — Apq = (p ∨ q)",
+        "                          E (↔ iff)     — Epq = (p ↔ q)",
+        "Modal (+0 slots, 1 WFF):  L (□ necessarily) — true in ALL reachable worlds",
+        "                          M (◇ possibly)    — true in SOME reachable world",
+        "Reading tip: Operator first, then 1st WFF, then 2nd WFF. Zero parentheses!",
+      ]
+      var ry = refRc.y + 44.0
+      for ln in refLines:
+        if ry + 14.0 > refRc.y + refRc.h: break
+        self.drawText(font, refRc.x + 12.0, ry, ln, 12, color(0.86, 0.90, 0.86, 0.95))
+        ry += 21.0
     return
 
   self.drawText(font, rc.x + 14.0, rc.y + 52.0, fmt"Polish:  {parsed.polish}", 16, color(0.56, 0.94, 0.72, 1.0), shadow = true)
@@ -329,35 +361,63 @@ proc drawAcademy(self: PropsAndProofsController; font: gdref Font) =
   let lesson = Lessons[p.game.lessonIdx]
 
   self.drawCard(lp, color(0.11, 0.16, 0.14, 0.96), color(0.46, 0.60, 0.52, 0.80))
-  self.drawText(font, lp.x + 18.0, lp.y + 28.0, fmt"ACADEMY • {lesson.track} ({p.game.lessonIdx + 1}/12)", 14, color(0.96, 0.84, 0.52, 1.0), shadow = true)
-  self.drawText(font, lp.x + 18.0, lp.y + 104.0, lesson.title, 18, color(0.98, 0.96, 0.90, 1.0), shadow = true)
+  self.drawText(font, lp.x + 18.0, lp.y + 26.0, fmt"ACADEMY • {lesson.track} ({p.game.lessonIdx + 1}/{Lessons.len})", 14, color(0.96, 0.84, 0.52, 1.0), shadow = true)
+  self.drawText(font, lp.x + 18.0, lp.y + 98.0, lesson.title, 18, color(0.98, 0.96, 0.90, 1.0), shadow = true)
 
-  var cy = self.drawWrappedText(font, lp.x + 18.0, lp.y + 132.0, lp.w - 36.0, lesson.explanation, 13, color(0.88, 0.90, 0.86, 0.96))
-  cy += 8.0
-  self.drawCard(uiRect(lp.x + 18.0, cy, lp.w - 36.0, 56.0), color(0.15, 0.24, 0.20, 0.95), color(0.56, 0.84, 0.66, 0.85), 1.4)
-  self.drawText(font, lp.x + 28.0, cy + 20.0, "OBJECTIVE:", 12, color(0.64, 0.96, 0.76, 1.0))
-  discard self.drawWrappedText(font, lp.x + 28.0, cy + 38.0, lp.w - 56.0, lesson.task, 13, color(0.96, 0.96, 0.92, 1.0))
+  discard self.drawWrappedText(font, lp.x + 18.0, lp.y + 122.0, lp.w - 36.0, lesson.explanation, 13, color(0.88, 0.90, 0.86, 0.96), 18.0)
 
-  self.drawText(font, lp.x + 22.0, lp.y + 294.0, "CLICK CUBES (OR TYPE p,q,r,s,N,C,K,A,E,L,M):", 12, color(0.84, 0.80, 0.64, 0.95))
+  # Worked Breakdown / How It Works card
+  let wtRc = uiRect(lp.x + 18.0, lp.y + 204.0, lp.w - 36.0, 78.0)
+  self.drawCard(wtRc, color(0.10, 0.15, 0.21, 0.95), color(0.46, 0.68, 0.86, 0.80), 1.3)
+  self.drawText(font, wtRc.x + 10.0, wtRc.y + 18.0, "WORKED BREAKDOWN:", 11, color(0.68, 0.88, 0.98, 1.0))
+  discard self.drawWrappedText(font, wtRc.x + 10.0, wtRc.y + 36.0, wtRc.w - 20.0, lesson.walkthrough, 12, color(0.92, 0.94, 0.96, 0.96), 17.0)
+
+  # Objective card
+  let objRc = uiRect(lp.x + 18.0, lp.y + 292.0, lp.w - 36.0, 62.0)
+  self.drawCard(objRc, color(0.15, 0.24, 0.20, 0.95), color(0.56, 0.84, 0.66, 0.85), 1.4)
+  self.drawText(font, objRc.x + 10.0, objRc.y + 18.0, "OBJECTIVE:", 11, color(0.64, 0.96, 0.76, 1.0))
+  discard self.drawWrappedText(font, objRc.x + 10.0, objRc.y + 36.0, objRc.w - 20.0, lesson.task, 13, color(0.96, 0.96, 0.92, 1.0), 17.0)
+
+  self.drawText(font, lp.x + 22.0, lp.y + 378.0, "CLICK CUBES BELOW (OR TYPE p,q,r,s,N,C,K,A,E,L,M):", 11, color(0.84, 0.80, 0.64, 0.95))
   for i, ch in p.cubeHits:
     self.drawLogicCube(font, ch.rc, ch.sym, hovered = (i == p.hoverCubeIdx))
 
-  # Workspace tray
-  let trayRc = uiRect(lp.x + 18.0, lp.y + 448.0, lp.w - 36.0, 90.0)
+  # Workspace tray with live slot badge
+  let trayRc = uiRect(lp.x + 18.0, lp.y + 454.0, lp.w - 36.0, 86.0)
   self.drawCard(trayRc, color(0.07, 0.10, 0.09, 0.96), color(0.74, 0.62, 0.34, 0.85), 1.6)
+  let slotInfo = polishSlotTrace(p.game.academyWorkspace)
+  let slotTag =
+    if slotInfo.completeAt == p.game.academyWorkspace.len and p.game.academyWorkspace.len > 0: "Open slots: 0 (Complete WFF)"
+    elif slotInfo.completeAt >= 0: "Extra cubes after complete WFF!"
+    else: fmt"Open slots: {slotInfo.openSlots}"
+  let slotCol =
+    if slotInfo.completeAt == p.game.academyWorkspace.len and p.game.academyWorkspace.len > 0: color(0.56, 0.96, 0.72, 1.0)
+    elif slotInfo.completeAt >= 0: color(0.98, 0.56, 0.50, 1.0)
+    else: color(0.94, 0.82, 0.52, 0.95)
   self.drawText(font, trayRc.x + 12.0, trayRc.y + 18.0, "YOUR FORMULA WORKSPACE:", 11, color(0.84, 0.78, 0.60, 0.90))
+  self.drawText(font, trayRc.x + 210.0, trayRc.y + 18.0, slotTag, 11, slotCol)
   for i, sym in p.game.academyWorkspace:
     let cRc = uiRect(trayRc.x + 12.0 + float(i) * 52.0, trayRc.y + 26.0, 46.0, 46.0)
     self.drawLogicCube(font, cRc, sym)
 
   # Feedback & hint banner
-  let fbY = trayRc.y + trayRc.h + 16.0
+  let fbY = trayRc.y + trayRc.h + 12.0
+  let fbH = if p.game.showHint: 100.0 else: 70.0
   let fbBg = if p.game.academySolved: color(0.12, 0.34, 0.22, 0.96) else: color(0.16, 0.18, 0.20, 0.95)
   let fbBd = if p.game.academySolved: color(0.54, 0.96, 0.70, 0.95) else: color(0.52, 0.58, 0.62, 0.75)
-  self.drawCard(uiRect(lp.x + 18.0, fbY, lp.w - 36.0, 74.0), fbBg, fbBd, 1.4)
-  discard self.drawWrappedText(font, lp.x + 28.0, fbY + 24.0, lp.w - 56.0, p.game.academyFeedback, 13, color(0.98, 0.96, 0.90, 1.0))
+  self.drawCard(uiRect(lp.x + 18.0, fbY, lp.w - 36.0, fbH), fbBg, fbBd, 1.4)
+  let afterFbY = self.drawWrappedText(font, lp.x + 28.0, fbY + 22.0, lp.w - 56.0, p.game.academyFeedback, 13, color(0.98, 0.96, 0.90, 1.0), 17.0)
   if p.game.showHint:
-    discard self.drawWrappedText(font, lp.x + 28.0, fbY + 52.0, lp.w - 56.0, "Hint: " & lesson.hint, 12, color(0.98, 0.88, 0.56, 1.0))
+    discard self.drawWrappedText(font, lp.x + 28.0, max(fbY + 56.0, afterFbY + 4.0), lp.w - 56.0, "Hint: " & lesson.hint, 12, color(0.98, 0.88, 0.56, 1.0), 16.0)
+
+  # Why It Matters takeaway card
+  let whyY = fbY + fbH + 10.0
+  let whyMaxH = (lp.y + lp.h - 64.0) - whyY
+  if whyMaxH >= 48.0:
+    let whyRc = uiRect(lp.x + 18.0, whyY, lp.w - 36.0, min(72.0, whyMaxH))
+    self.drawCard(whyRc, color(0.14, 0.14, 0.10, 0.94), color(0.76, 0.66, 0.36, 0.75), 1.2)
+    self.drawText(font, whyRc.x + 10.0, whyRc.y + 18.0, "WHY THIS MATTERS IN GAMEPLAY:", 11, color(0.96, 0.84, 0.50, 1.0))
+    discard self.drawWrappedText(font, whyRc.x + 10.0, whyRc.y + 35.0, whyRc.w - 20.0, lesson.whyItMatters, 12, color(0.90, 0.88, 0.80, 0.94), 16.0)
 
   self.drawFormulaInspector(font, rp, p.game.academyWorkspace, lesson.system)
 
@@ -377,7 +437,11 @@ proc drawWffGame(self: PropsAndProofsController; font: gdref Font) =
     color(0.76, 0.94, 0.84, 1.0),
   )
   self.drawText(font, lp.x + 22.0, lp.y + 110.0, "ROLLED DICE POOL (Click a cube to move it into your WFF):", 12, color(0.88, 0.84, 0.68, 0.95))
-  self.drawText(font, lp.x + 22.0, lp.y + 330.0, "YOUR WFF TRAY (Click a cube to return it to the pool):", 12, color(0.68, 0.94, 0.78, 0.95))
+  var wsSyms: seq[Symbol] = @[]
+  for c in p.game.sprintWorkspace:
+    wsSyms.add(c.sym)
+  let spSlots = polishSlotTrace(wsSyms)
+  self.drawText(font, lp.x + 22.0, lp.y + 330.0, fmt"YOUR WFF TRAY ({spSlots.summary}):", 12, color(0.68, 0.94, 0.78, 0.95))
 
   for i, ch in p.cubeHits:
     self.drawLogicCube(font, ch.rc, ch.sym, hovered = (i == p.hoverCubeIdx))
@@ -388,9 +452,6 @@ proc drawWffGame(self: PropsAndProofsController; font: gdref Font) =
   if p.game.sprintSubmitted:
     self.drawText(font, resRc.x + 14.0, resRc.y + 82.0, "Logician AI Solution: " & p.game.sprintAiBest, 13, color(0.70, 0.90, 1.0, 1.0))
 
-  var wsSyms: seq[Symbol] = @[]
-  for c in p.game.sprintWorkspace:
-    wsSyms.add(c.sym)
   self.drawFormulaInspector(font, rp, wsSyms, p.game.modalSystem)
 
 proc drawProofMat(self: PropsAndProofsController; font: gdref Font) =
@@ -456,14 +517,22 @@ proc drawProofMat(self: PropsAndProofsController; font: gdref Font) =
     "Each turn, move 1 cube from Resources into Required, Permitted, or Forbidden. Watch the balance of operators and atoms! If Required + Permitted ALREADY contain a valid Goal WFF, click 'Challenge: NOW!' (+6 pts). If the opponent's last move made any valid Goal impossible, click 'Challenge: IMPOSSIBLE!' (+6 pts).",
     12,
     color(0.86, 0.88, 0.84, 0.95),
+    17.0,
   )
 
+  # Live Mat Balance Readout
+  let st = p.game.matZoneStats()
+  let balRc = uiRect(rp.x + 16.0, rp.y + 150.0, rp.w - 32.0, 56.0)
+  self.drawCard(balRc, color(0.08, 0.13, 0.16, 0.95), color(0.46, 0.72, 0.88, 0.80), 1.2)
+  self.drawText(font, balRc.x + 10.0, balRc.y + 20.0, fmt"LIVE MAT BALANCE (Required + Permitted):  {st.reqPermAtoms} atoms,  {st.reqPermBins} binaries,  {st.reqPermUnaries} unaries  |  {st.resCount} in Resources", 11, color(0.76, 0.92, 0.98, 1.0))
+  self.drawText(font, balRc.x + 10.0, balRc.y + 42.0, "Rule of thumb: B binaries need B + 1 atoms (and >= 5 total cubes for Goal).", 11, color(0.88, 0.86, 0.72, 0.94))
+
   # Chronicle log
-  self.drawText(font, rp.x + 16.0, rp.y + 186.0, "MATCH CHRONICLE", 13, color(0.76, 0.90, 0.96, 1.0))
-  self.drawLine(vector2(rp.x + 16.0, rp.y + 194.0), vector2(rp.x + rp.w - 16.0, rp.y + 194.0), color(0.42, 0.54, 0.50, 0.65), 1.2)
-  let maxLines = max(8, int((rp.h - 220.0) / 21.0))
+  self.drawText(font, rp.x + 16.0, rp.y + 228.0, "MATCH CHRONICLE", 13, color(0.76, 0.90, 0.96, 1.0))
+  self.drawLine(vector2(rp.x + 16.0, rp.y + 236.0), vector2(rp.x + rp.w - 16.0, rp.y + 236.0), color(0.42, 0.54, 0.50, 0.65), 1.2)
+  let maxLines = max(8, int((rp.h - 262.0) / 21.0))
   let startIdx = max(0, p.game.matLog.len - maxLines)
-  var ly = rp.y + 218.0
+  var ly = rp.y + 260.0
   for idx in startIdx ..< p.game.matLog.len:
     self.drawText(font, rp.x + 16.0, ly, p.game.matLog[idx], 12, color(0.92, 0.90, 0.84, 0.96), rp.w - 32.0)
     ly += 21.0
@@ -522,6 +591,13 @@ proc drawProofLab(self: PropsAndProofsController; font: gdref Font) =
 
   self.drawText(font, rp.x + 18.0, rp.y + 422.0, "SELECT INFERENCE RULE:", 11, color(0.84, 0.82, 0.70, 0.95))
 
+  # Selected rule guide card below the 2-row rule strip
+  let rgRc = uiRect(rp.x + 18.0, rp.y + 500.0, rp.w - 36.0, 82.0)
+  self.drawCard(rgRc, color(0.08, 0.12, 0.16, 0.95), color(0.48, 0.70, 0.88, 0.80), 1.3)
+  self.drawText(font, rgRc.x + 10.0, rgRc.y + 18.0, fmt"SELECTED RULE GUIDE — {$p.game.labSelectedRule}", 11, color(0.70, 0.90, 1.0, 1.0))
+  discard self.drawWrappedText(font, rgRc.x + 10.0, rgRc.y + 38.0, rgRc.w - 20.0, ruleHelp(p.game.labSelectedRule), 12, color(0.94, 0.94, 0.90, 0.96), 17.0)
+  self.drawText(font, rgRc.x + 10.0, rgRc.y + 72.0, "How to add a line: 1) Build formula on left  2) Pick Rule & Ref1/Ref2  3) Click '+ Add Step'.", 11, color(0.82, 0.84, 0.74, 0.92))
+
 proc drawOverlay(self: PropsAndProofsController; font: gdref Font) =
   let p = self.presenter
   self.drawRect(rect2(0.0, 0.0, p.width, p.height), color(0.02, 0.03, 0.04, 0.76), filled = true)
@@ -532,50 +608,57 @@ proc drawOverlay(self: PropsAndProofsController; font: gdref Font) =
     self.drawText(font, mr.x + 24.0, mr.y + 36.0, "PROPS & PROOFS — POLISH NOTATION & RULES GUIDE", 20, color(0.98, 0.88, 0.56, 1.0), shadow = true)
     let lines = [
       "1. POLISH (ŁUKASIEWICZ) PREFIX NOTATION — ZERO PARENTHESES:",
-      "   • Atoms (0-ary):  p, q, r, s  are Well-Formed Formulas (WFFs).",
-      "   • Unary (1-ary):  N (¬ not),  L (□ necessarily),  M (◇ possibly)  prefix 1 WFF.",
-      "   • Binary (2-ary): C (→ if-then),  K (∧ and),  A (∨ or),  E (↔ iff)  prefix 2 WFFs.",
-      "   • Example: CKpqr = ((p ∧ q) → r)   |   CLCpqCLpLq = □(p → q) → (□p → □q).",
+      "   • Atoms (0-ary, fills 1 slot):  p, q, r, s  are standalone true/false claims (WFFs).",
+      "   • Unary (1-ary, +0 slots):      N (¬ not),  L (□ necessarily),  M (◇ possibly)  prefix 1 WFF.",
+      "   • Binary (2-ary, +1 slot):      C (→ if-then),  K (∧ and),  A (∨ or),  E (↔ iff)  prefix 2 WFFs.",
+      "   • Reading example:  CKpqr = C [Kpq] [r] = ((p ∧ q) → r)   |   CpKqr = (p → (q ∧ r)).",
       "",
-      "2. THE WFF GAME (DICE SPRINT):",
-      "   • Roll 12–14 logic cubes and assemble the longest valid WFF.",
-      "   • Balance rule: B binary operators always require exactly B + 1 atoms.",
+      "2. THE SLOT-COUNTING TRICK (INSTANT WFF CHECK):",
+      "   • Start at 1 open slot. Binary adds +1, Unary adds +0, Atom subtracts -1.",
+      "   • A sequence is a valid WFF iff slots hit 0 on the final cube (so B binaries need B + 1 atoms).",
       "",
-      "3. THE 3-ZONE PROPS & PROOFS MAT:",
-      "   • Players alternate placing 1 Resource cube into REQUIRED, PERMITTED, or FORBIDDEN.",
+      "3. THE WFF GAME (DICE SPRINT):",
+      "   • Roll 12–14 logic cubes and assemble the longest valid WFF against the Logician AI.",
+      "   • Tip: Stack all unary cubes (N, L, M) first — they add free length without costing atoms!",
+      "",
+      "4. THE 3-ZONE PROPS & PROOFS MAT:",
+      "   • Alternate placing 1 Resource cube into REQUIRED (must use), PERMITTED (may use), or FORBIDDEN.",
       "   • Call 'Challenge: NOW!' if Required + Permitted already form a valid Goal WFF (+6 pts).",
       "   • Call 'Challenge: IMPOSSIBLE!' if the last move made any valid Goal impossible (+6 pts).",
       "",
-      "4. KEYBOARD SHORTCUTS:",
+      "5. KEYBOARD SHORTCUTS:",
       "   • Type p, q, r, s, N, C, K, A, E, L, M to place cubes; Backspace to undo; Esc to close popups.",
     ]
-    var ly = mr.y + 78.0
+    var ly = mr.y + 74.0
     for ln in lines:
-      self.drawText(font, mr.x + 24.0, ly, ln, 14, color(0.92, 0.92, 0.88, 0.98))
-      ly += 28.0
+      self.drawText(font, mr.x + 24.0, ly, ln, 13, color(0.92, 0.92, 0.88, 0.98))
+      ly += 26.0
   else:
     self.drawText(font, mr.x + 24.0, mr.y + 36.0, "MODAL LOGIC SYSTEMS REFERENCE (K → T → S4 → S5)", 20, color(0.70, 0.90, 1.0, 1.0), shadow = true)
     let lines = [
-      "In Kripke Possible-Worlds Semantics (W, R, V):",
-      "  • □φ (Polish Lφ) is true at world w iff φ is true at EVERY world v where wRv.",
-      "  • ◇φ (Polish Mφ) is true at world w iff φ is true at AT LEAST ONE world v where wRv.",
-      "  • Modal Duality (valid in all systems): ¬□p ↔ ◇¬p  (ENLpMNp)   and   ¬◇p ↔ □¬p  (ENMpLNp).",
+      "1. POSSIBLE WORLDS & HOW TO READ A KRIPKE GRAPH:",
+      "   • Circles (w0, w1, w2) are possible worlds. Arrows (w → v) mean world w can 'see' world v.",
+      "   • □φ (Lφ) is true at w iff φ is true at EVERY world v that w has an arrow to.",
+      "   • ◇φ (Mφ) is true at w iff φ is true at AT LEAST ONE world v that w has an arrow to.",
+      "   • Red circle = the failing world where φ evaluates to False (φ:F). Loop above circle = self-loop (wRw).",
+      "   • Modal Duality (all systems):  ¬□p ↔ ◇¬p  (ENLpMNp)   and   ¬◇p ↔ □¬p  (ENMpLNp).",
       "",
-      "THE MODAL HIERARCHY (Each system adds frame conditions to R):",
-      "  • System K  (All frames):               Axiom K:  □(p→q) → (□p→□q)   [CLCpqCLpLq]",
-      "                                          Rule Nec: From theorem ⊢ φ, infer ⊢ □φ.",
-      "  • System T  (+ Reflexive: wRw):         Axiom T:  □p → p              [CLpp]  (Alethic Truth)",
-      "  • System S4 (+ Transitive):             Axiom 4:  □p → □□p            [CLpLLp] (Provability / Knowledge)",
-      "  • System S5 (+ Symmetric / Equiv):      Axiom 5:  ◇p → □◇p            [CMpLMp] (Metaphysical Necessity)",
-      "                                          Axiom B:  p → □◇p             [CpLMp]",
+      "2. THE MODAL HIERARCHY (Each stronger system adds arrow rules to R):",
+      "   • System K  (Any arrows, even dead-ends):  Axiom K:  □(p→q) → (□p→□q)   [CLCpqCLpLq]",
+      "                                              Rule Nec: From pure theorem ⊢ φ, infer ⊢ □φ.",
+      "   • System T  (+ Reflexive: every wRw):      Axiom T:  □p → p              [CLpp]  (Truth)",
+      "   • System S4 (+ Transitive: wRv & vRu→wRu): Axiom 4:  □p → □□p            [CLpLLp] (Provability / Knowledge)",
+      "   • System S5 (+ Symmetric: wRv → vRw):      Axiom 5:  ◇p → □◇p            [CMpLMp] (Metaphysical Necessity)",
+      "                                              Axiom B:  p → □◇p             [CpLMp]",
       "",
-      "TIP: Open the Proof & Kripke Lab or Academy Lessons 7–12 to test any formula and see",
-      "live Kripke countermodel graphs showing exactly WHY an axiom fails in weaker systems!",
+      "3. PRACTICE TIP:",
+      "   • Work through Academy Lessons 11–16, then test formulas in Proof & Kripke Lab to watch",
+      "     how adding Reflexivity, Transitivity, or Symmetry eliminates each countermodel!",
     ]
-    var ly = mr.y + 78.0
+    var ly = mr.y + 74.0
     for ln in lines:
-      self.drawText(font, mr.x + 24.0, ly, ln, 14, color(0.90, 0.94, 0.98, 0.98))
-      ly += 28.0
+      self.drawText(font, mr.x + 24.0, ly, ln, 13, color(0.90, 0.94, 0.98, 0.98))
+      ly += 26.0
 
 method ready*(self: PropsAndProofsController) {.gdsync.} =
   self.headless = ($DisplayServer.singleton.getName() == "headless")

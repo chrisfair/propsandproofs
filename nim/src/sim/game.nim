@@ -24,7 +24,7 @@ type
 
     # Academy state
     lessonIdx*: int
-    lessonsCompleted*: array[12, bool]
+    lessonsCompleted*: array[Lessons.len, bool]
     academyWorkspace*: seq[Symbol]
     academyFeedback*: string
     academySolved*: bool
@@ -381,6 +381,16 @@ proc matZoneSymbols*(g: WffGameState; zone: MatZone): seq[Symbol] =
     if c.zone == zone:
       result.add(c.sym)
 
+proc matZoneStats*(g: WffGameState): tuple[reqPermAtoms, reqPermBins, reqPermUnaries, resCount: int] =
+  for c in g.matCubes:
+    if c.zone in {mzRequired, mzPermitted}:
+      case c.sym.arity()
+      of 0: inc result.reqPermAtoms
+      of 1: inc result.reqPermUnaries
+      else: inc result.reqPermBins
+    elif c.zone == mzResources:
+      inc result.resCount
+
 proc checkMatSolvable*(g: WffGameState; includeResources: bool): (bool, string) =
   ## Checks whether a valid WFF of length >= 5 (and modal if modalSystem != msProp)
   ## can be formed using ALL Required cubes + Permitted cubes (+ Resources if includeResources)
@@ -552,6 +562,31 @@ proc academyPopSymbol*(g: WffGameState) =
 proc academyClear*(g: WffGameState) =
   g.academyWorkspace = @[]
   g.academyFeedback = Lessons[g.lessonIdx].task
+
+proc academyNextStep*(g: WffGameState) =
+  ## Pushes the next cube from the lesson's worked example, trimming any mismatched suffix first.
+  let ex = Lessons[g.lessonIdx].examplePolish
+  var targetSyms: seq[Symbol] = @[]
+  for ch in ex:
+    var s: Symbol
+    if charToSymbol(ch, s):
+      targetSyms.add(s)
+  if targetSyms.len == 0:
+    return
+  var matchLen = 0
+  while matchLen < g.academyWorkspace.len and matchLen < targetSyms.len and
+      g.academyWorkspace[matchLen] == targetSyms[matchLen]:
+    inc matchLen
+  if matchLen < g.academyWorkspace.len:
+    g.academyWorkspace.setLen(matchLen)
+  if matchLen < targetSyms.len:
+    g.academyPushSymbol(targetSyms[matchLen])
+  else:
+    let (ok, msg) = evaluateLesson(g.lessonIdx, g.academyWorkspace)
+    g.academyFeedback = msg
+    if ok:
+      g.academySolved = true
+      g.lessonsCompleted[g.lessonIdx] = true
 
 proc newWffGame*(seed: int64 = 42): WffGameState =
   result = WffGameState(

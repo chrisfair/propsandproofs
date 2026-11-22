@@ -4,7 +4,7 @@ An open-source Godot 4 + Nim (`gdext`) tabletop game and interactive tutor for *
 
 ## Modes Included
 
-1. **Academy (12 Lessons)** — Six lessons covering Polish notation, tautologies, and 3-zone mat strategy, followed by six lessons on Modal Logic (`L` = `□` Necessity, `M` = `◇` Possibility, Modal Duality, System K, System T, System S4, and System S5).
+1. **Academy (16 Lessons)** — Ten lessons across two tracks covering Polish prefix notation, the slot-counting method, truth tables, equivalences, 3-Zone Mat strategy, and Fitch natural deduction, followed by six lessons on Modal Logic (`L` = `□` Necessity, `M` = `◇` Possibility, Modal Duality, System K, System T, System S4, and System S5).
 2. **WFF Game (Dice Sprint)** — Roll 12–14 logic cubes and assemble the longest valid Well-Formed Formula against the Logician AI.
 3. **3-Zone Proof Mat** — Alternate placing Resource cubes into **Required**, **Permitted**, and **Forbidden** zones against the Logician AI, and call **Challenge: NOW!** or **Challenge: IMPOSSIBLE!**.
 4. **Proof & Kripke Lab** — Test any Polish formula across `Prop`, `K`, `T`, `S4`, and `S5`, inspect live Kripke countermodel graphs, and build verified Fitch-style natural deduction and modal proofs.

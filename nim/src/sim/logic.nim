@@ -170,6 +170,54 @@ proc parseWffString*(text: string): ParseResult =
     syms.add(s)
   parseWff(syms)
 
+proc polishSlotTrace*(syms: openArray[Symbol]): tuple[openSlots: int, completeAt: int, summary: string, trace: string] =
+  ## Computes the Polish prefix slot-counting trace:
+  ## start with 1 open slot; binary adds +1, unary adds +0, atom fills -1.
+  ## A formula is complete the exact moment open slots reach 0 with no trailing cubes.
+  if syms.len == 0:
+    return (
+      openSlots: 1,
+      completeAt: -1,
+      summary: "Open slots: 1. Start with an operator (N, C, K, A, E, L, M) or an atom (p, q, r, s).",
+      trace: "[start: 1 slot]",
+    )
+
+  var slots = 1
+  var completeAt = -1
+  var trace = "[start:1]"
+  for i, s in syms:
+    if slots == 0 and completeAt < 0:
+      completeAt = i
+    let delta = s.arity() - 1
+    slots += delta
+    let dStr =
+      if delta > 0: "+1"
+      elif delta == 0: "+0"
+      else: "-1"
+    trace.add(fmt" {s.polishChar()}({dStr}→{slots})")
+
+  if completeAt >= 0:
+    return (
+      openSlots: slots,
+      completeAt: completeAt,
+      summary: fmt"Already formed a complete WFF after {completeAt} cube(s). Press Backspace to remove extra cubes.",
+      trace: trace,
+    )
+  if slots == 0:
+    return (
+      openSlots: 0,
+      completeAt: syms.len,
+      summary: "Open slots: 0 — complete Well-Formed Formula!",
+      trace: trace,
+    )
+  let noun = if slots == 1: "slot" else: "slots"
+  (
+    openSlots: slots,
+    completeAt: -1,
+    summary: fmt"Open slots: {slots} — add {slots} more atom/WFF {noun} (or wrap with unary/binary operators).",
+    trace: trace,
+  )
+
 proc collectAtoms(node: WffNode; found: var seq[Symbol]) =
   if node.isNil: return
   if node.sym.arity() == 0:

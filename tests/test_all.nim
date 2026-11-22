@@ -167,9 +167,13 @@ suite "Fitch Natural Deduction & Modal Proof Verifier":
     ]
     check not verifyProof(bad5, "LMp", msS4).allValid
 
-suite "12-Lesson Academy Curriculum":
-  test "every lesson's example solution passes evaluateLesson":
+suite "16-Lesson Academy Curriculum & Didactic Helpers":
+  test "every lesson has didactic text and its example solution passes evaluateLesson":
+    check Lessons.len == 16
     for idx, lesson in Lessons:
+      check lesson.explanation.len > 0
+      check lesson.walkthrough.len > 0
+      check lesson.whyItMatters.len > 0
       var syms: seq[Symbol] = @[]
       for ch in lesson.examplePolish:
         var s: Symbol
@@ -177,6 +181,31 @@ suite "12-Lesson Academy Curriculum":
         syms.add(s)
       let (ok, _) = evaluateLesson(idx, syms)
       check ok
+
+  test "polishSlotTrace tracks empty, partial, complete, and trailing formulas":
+    let t0 = polishSlotTrace(@[])
+    check t0.openSlots == 1
+    check t0.completeAt == -1
+
+    let t1 = polishSlotTrace(@[symC, symK, symP])
+    check t1.openSlots == 2
+    check t1.completeAt == -1
+
+    let t2 = polishSlotTrace(@[symC, symK, symP, symQ, symR])
+    check t2.openSlots == 0
+    check t2.completeAt == 5
+
+    let t3 = polishSlotTrace(@[symN, symP, symQ])
+    check t3.completeAt == 2
+
+  test "evaluateLesson reports failing truth-table row on non-tautology":
+    let (ok, msg) = evaluateLesson(5, @[symC, symP, symN, symQ])
+    check not ok
+    check msg.len > 0
+
+  test "ruleHelp covers every ProofRule":
+    for r in ProofRule:
+      check ruleHelp(r).len > 0
 
 suite "WFF Game, 3-Zone Mat, AI, and UI Presenter":
   test "WFF solver and Dice Sprint round":
@@ -215,15 +244,17 @@ suite "WFF Game, 3-Zone Mat, AI, and UI Presenter":
     p.resize(1440.0, 900.0)
     p.onMouseMove(100.0, 100.0)
     check p.onKeyChar('N')
-    check p.onKeyChar('N')
     check p.onKeyChar('p')
     check p.game.academySolved
     check p.onKeyChar('\b')
 
     p.handleButton("acad:hint")
+    p.handleButton("acad:step")
     p.handleButton("acad:example")
     p.handleButton("acad:next")
     p.handleButton("acad:clear")
+    p.handleButton("acad:step")
+    discard p.game.matZoneStats()
 
     p.handleButton("modal:rules")
     check p.overlay == moRules

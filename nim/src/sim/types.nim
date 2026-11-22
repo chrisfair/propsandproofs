@@ -28,7 +28,7 @@ type
     msS5 = "System S5 (Equivalence)"
 
   GameMode* = enum
-    gmAcademy = "Academy (12 Lessons)"
+    gmAcademy = "Academy (16 Lessons)"
     gmWffGame = "WFF Game (Dice Sprint)"
     gmProofMat = "3-Zone Proof Mat"
     gmProofLab = "Proof & Kripke Lab"

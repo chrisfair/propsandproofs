@@ -1,6 +1,6 @@
 # Maintainer: Christopher Patrick Fair <christopherpatrickfair@gmail.com>
 pkgname=propsandproofs
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 _gdext_ver=0.17.1
 pkgdesc="Propositional and Modal Logic (K/T/S4/S5) tabletop dice, Fitch proof, and Kripke worlds game"
